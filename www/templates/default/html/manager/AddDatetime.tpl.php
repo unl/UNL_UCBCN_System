@@ -146,14 +146,13 @@
 
         <label class="dcf-label" for="start-date" ><span class="dcf-required">*</span> Start Date &amp; Time</label>
         <div class="date-time-select">
-          <div class="date-group dcf-d-flex dcf-flex-grow-1 dcf-ai-center dcf-relative dcf-mb-4 dcf-pr-6">
-            <span class="dcf-absolute dcf-z-1 wdn-icon-calendar" aria-hidden="true"></span>
-            <input id="start-date"  value="<?php echo $start_date; ?>" name="start_date" aria-label="Start Date in the format of mm/dd/yyyy" type="text" class="dcf-flex-grow-1 datepicker" autocomplete="off" />
+          <div class="date-group dcf-flex-grow-1 dcf-datepicker">
+            <input id="start-date"  value="<?php echo $start_date; ?>" name="start_date" aria-label="Start Date in the format of mm/dd/yyyy" type="text" class="" autocomplete="off" />
           </div>
 
           <div class="time-group dcf-d-flex dcf-ai-center dcf-flex-grow-1 dcf-mb-4">
 
-            <span class="dcf-pr-2">@</span>
+            <span class="dcf-pl-2 dcf-pr-2">@</span>
 
             <select class="dcf-flex-grow-1 dcf-input-select"  id="start-time-hour" name="start_time_hour" aria-label="Start time hour">
               <option value="">Hour</option>
@@ -185,14 +184,13 @@
 
         <label class="dcf-label" for="end-date">End Date &amp; Time (Optional)</label>
         <div class="date-time-select">
-          <div class="date-group dcf-d-flex dcf-flex-grow-1 dcf-ai-center dcf-relative dcf-mb-4 dcf-pr-6">
-            <span class="dcf-absolute dcf-z-1 wdn-icon-calendar" aria-hidden="true"></span>
-            <input id="end-date"  value="<?php echo $end_date; ?>" name="end_date" aria-label="End Date in the format of mm/dd/yyyy" type="text" class="datepicker" autocomplete="off" />
+          <div class="date-group dcf-flex-grow-1 dcf-datepicker">
+            <input id="end-date"  value="<?php echo $end_date; ?>" name="end_date" aria-label="End Date in the format of mm/dd/yyyy" type="text" autocomplete="off" />
           </div>
 
           <div class="time-group dcf-d-flex dcf-ai-center dcf-flex-grow-1 dcf-mb-4">
 
-            <span class="dcf-pr-2">@</span>
+            <span class="dcf-pl-2 dcf-pr-2">@</span>
 
             <select class="dcf-flex-grow-1 dcf-input-select" id="end-time-hour" name="end_time_hour" aria-label="End time hour">
                 <option value="">Hour</option>
@@ -237,9 +235,10 @@
                       </optgroup>
                       <option value="annually" <?php if($datetime->recurringtype == "biweekly") { echo 'selected="selected"'; } ?>>Yearly</option>
                     </select>
-                    <label class="dcf-label dcf-d-inline-block" for="recurs-until-date">until </label><br>
-                    <span class="wdn-icon-calendar" style="top: .4em" aria-hidden="true"></span>
-                    <input value="<?php if ($datetime->recurringtype != 'none' && $datetime->recurringtype != NULL) echo $recurs_until_date; ?>" id="recurs-until-date" name="recurs_until_date" type="text" class="datepicker" aria-label="Until date in the format of mm/dd/yyyy" autocomplete="off" />
+                    <div class="dcf-datepicker">
+                        <label class="dcf-label dcf-d-inline-block" for="recurs-until-date">until </label><br>
+                        <input value="<?php if ($datetime->recurringtype != 'none' && $datetime->recurringtype != NULL) { echo $recurs_until_date; } ?>" id="recurs-until-date" name="recurs_until_date" type="text" aria-label="Until date in the format of mm/dd/yyyy" autocomplete="off" />
+                    </div>
                 </div>
             </div>
         <?php endif; ?>
@@ -265,11 +264,10 @@ if ($datetime->recurringtype != 'none' && $datetime->recurringtype != NULL) {
   $recurringCode = "setRecurringOptions($('#start-date'), $('#monthly-group'), '" . $rectypemonth. "');";
 }
 $page->addScriptDeclaration("
-WDN.initializePlugin('jqueryui', [function() {  
-    $ = require('jquery');
+require(['jquery'], function ($) {
 
-    $('.datepicker').datepicker();
-    $(\"LINK[href^='//unlcms.unl.edu/wdn/templates_4.0/scripts/plugins/ui/css/jquery-ui.min.css']\").remove();
+    // DCF Date Picker
+    WDN.initializePlugin('datepickers');
 
     $('#location').change(function(change) {
         if ($('#location').val() == 'new') {
@@ -280,6 +278,12 @@ WDN.initializePlugin('jqueryui', [function() {
     });
 
     $('#location').change();
+
+    $('#recurring').change(function () {
+        if (this.checked) {
+            setRecurringOptions($('#start-date'), $('#monthly-group'), '" . $recurringType . "');
+        }
+    });
 
     $('#start-date').change(function (change) {
         setRecurringOptions($(this), $('#monthly-group'), '" . $rectypemonth. "');
@@ -366,6 +370,6 @@ WDN.initializePlugin('jqueryui', [function() {
             notifier.alert('Sorry! We couldn\'t create your event', '<ul><li>' + errors.join('</li><li>') + '</li></ul>');
         }
     });
-}]);");
+});");
 
 ?>

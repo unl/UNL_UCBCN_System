@@ -124,9 +124,8 @@
 
                 <label class="dcf-label" for="start-date" ><span class="dcf-required">*</span> Start Date &amp; Time</label>
                 <div class="date-time-select">
-                  <div class="date-group dcf-d-flex dcf-flex-grow-1 dcf-ai-center dcf-relative dcf-mb-4 dcf-pr-6">
-                    <span class="dcf-absolute dcf-z-1 wdn-icon-calendar" aria-hidden="true"></span>
-                    <input id="start-date" name="start_date" aria-label="Start Date in the format of mm/dd/yyyy" type="text" class="dcf-flex-grow-1 datepicker" value="<?php if (isset($post['start_date'])) { echo $post['start_date']; } ?>" autocomplete="off" />
+                  <div class="date-group dcf-datepicker dcf-flex-grow-1">
+                    <input id="start-date" name="start_date" aria-label="Start Date in the format of mm/dd/yyyy" type="text" value="<?php if (isset($post['start_date'])) { echo $post['start_date']; } ?>" autocomplete="off" />
                   </div>
 
                   <div class="time-group dcf-d-flex dcf-ai-center dcf-flex-grow-1 dcf-mb-4">
@@ -172,9 +171,8 @@
 
                 <label class="dcf-label" for="end-date">End Date &amp; Time (Optional)</label>
                 <div class="date-time-select">
-                  <div class="date-group dcf-d-flex dcf-flex-grow-1 dcf-ai-center dcf-relative dcf-mb-4 dcf-pr-6">
-                    <span class="dcf-absolute dcf-z-1 wdn-icon-calendar" aria-hidden="true"></span>
-                    <input id="end-date" name="end_date" aria-label="End Date in the format of mm/dd/yyyy" type="text" class="datepicker" value="<?php if (isset($post['end_date'])) { echo $post['end_date']; } ?>" autocomplete="off" />
+                  <div class="date-group dcf-datepicker dcf-flex-grow-1">
+                    <input id="end-date" name="end_date" aria-label="End Date in the format of mm/dd/yyyy" type="text" value="<?php if (isset($post['end_date'])) { echo $post['end_date']; } ?>" autocomplete="off" />
                   </div>
 
                   <div class="time-group dcf-d-flex dcf-ai-center dcf-flex-grow-1 dcf-mb-4">
@@ -231,9 +229,10 @@
                             </optgroup>
                             <option value="annually">Yearly</option>
                         </select>
-                        <label class="dcf-label" for="recurs-until-date">until </label><br>
-                        <span style="top: .4em" class="wdn-icon-calendar" aria-hidden="true"></span>
-                        <input value="<?php if (isset($post['recurs_until_date'])) { echo $post['recurs_until_date']; } ?>" id="recurs-until-date" name="recurs_until_date" type="text" class="dcf-input-text datepicker" aria-label="until this date in the format of mm/dd/yyyy" autocomplete="off" />
+                        <div class="dcf-datepicker">
+                            <label class="dcf-label" for="recurs-until-date">until </label>
+                            <input value="<?php if (isset($post['recurs_until_date'])) { echo $post['recurs_until_date']; } ?>" id="recurs-until-date" name="recurs_until_date" type="text" aria-label="until this date in the format of mm/dd/yyyy" autocomplete="off" />
+                        </div>
                     </div>
                 </div>
 
@@ -310,14 +309,25 @@
 </div>
 
 <?php
-$recurringType = !empty($post['recurring_type']) ? $post['recurring_type'] : NULL;
+$recurringType = !empty($post['recurring_type']) ? $post['recurring_type'] : 'none';
 $page->addScriptDeclaration("
-WDN.initializePlugin('jqueryui', [function() {  
-    $ = require('jquery');
-    $('.datepicker').datepicker();
-    $(\"LINK[href^='//unlcms.unl.edu/wdn/templates_4.0/scripts/plugins/ui/css/jquery-ui.min.css']\").remove();
 
-    $('#start-date').change(function (change) {
+function isUrlValid(url) {
+    return /^(https?|s?ftp):\/\/(((([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+,;=]|:)*@)?(((\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5]))|((([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.)+(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.?)(:\d*)?)(\/((([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+,;=]|:|@)+(\/(([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+,;=]|:|@)*)*)?)?(\?((([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+,;=]|:|@)|[\uE000-\uF8FF]|\/|\?)*)?(#((([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+,;=]|:|@)|\/|\?)*)?$/i.test(url);
+}
+
+require(['jquery'], function ($) {
+
+    // DCF Date Picker
+    WDN.initializePlugin('datepickers');
+
+    $('#recurring').change(function () {
+        if (this.checked) {
+            setRecurringOptions($('#start-date'), $('#monthly-group'), '" . $recurringType . "');
+        }
+    });
+
+    $('#start-date').change(function () {
         setRecurringOptions($(this), $('#monthly-group'), '" . $recurringType . "');
     });
 
@@ -333,13 +343,6 @@ WDN.initializePlugin('jqueryui', [function() {
     });
 
     $('#location').change();
-}]);
-
-function isUrlValid(url) {
-    return /^(https?|s?ftp):\/\/(((([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+,;=]|:)*@)?(((\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5]))|((([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.)+(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.?)(:\d*)?)(\/((([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+,;=]|:|@)+(\/(([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+,;=]|:|@)*)*)?)?(\?((([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+,;=]|:|@)|[\uE000-\uF8FF]|\/|\?)*)?(#((([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+,;=]|:|@)|\/|\?)*)?$/i.test(url);
-}
-
-require(['jquery'], function ($) {
 
     $('input[type=radio][name=send_to_main]').change(function() {
         if (this.value == 'on') {

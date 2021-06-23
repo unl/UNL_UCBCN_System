@@ -33,7 +33,6 @@ $page->head .= '<link rel="preload" href="/wdn/templates_5.3/css/deprecated.css"
 //css
 $page->addStyleSheet($base_frontend_url.'templates/default/html/css/events.css?v='.UNL\UCBCN\Frontend\Controller::$version);
 $page->addStyleSheet($base_frontend_url.'templates/default/html/css/manager.css?v='.UNL\UCBCN\Frontend\Controller::$version);
-$page->addStyleSheet($base_frontend_url.'templates/default/html/css/jquery-ui.min-custom.css?v='.UNL\UCBCN\Frontend\Controller::$version);
 $page->addStyleSheet($base_frontend_url.'templates/default/html/js/vendor/select2/css/select2.min.css?v='.UNL\UCBCN\Frontend\Controller::$version);
 
 // no menu items, so hide mobile menu

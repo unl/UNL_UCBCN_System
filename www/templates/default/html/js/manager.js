@@ -13,8 +13,16 @@ var ordinal = function(number) {
     }
 };
 
+Date.prototype.isValid = function () {
+    // An invalid date object returns NaN for getTime() and NaN is the only
+    // object not strictly equal to itself.
+    return !isNaN(this.getTime());
+};
+
 // this needs to be global as it gets tapped by the page js
 setRecurringOptions = function(start_elem, month_group_elem, rectypemonth) {
+    if (!start_elem.val()) { return; }
+
     // get startdate info
     var weekdays = [
         "Sunday", 
@@ -26,10 +34,11 @@ setRecurringOptions = function(start_elem, month_group_elem, rectypemonth) {
         "Saturday"
     ];
 
-    var start_year = start_elem.val().substring(6, 10);
-    var start_month = start_elem.val().substring(0, 2);
-    var start_day = parseInt(start_elem.val().substring(3, 5));
-    var start_date = new Date(start_year, start_month - 1, start_day);
+    var start_date = new Date(start_elem.val());
+    if (!start_date.isValid()) { return; }
+    var start_year = start_date.getFullYear();
+    var start_month = start_date.getMonth() + 1;
+    var start_day = start_date.getDate();
     var start_weekday = weekdays[start_date.getDay()];
 
     // get week in month
@@ -136,7 +145,6 @@ require(['jquery', 'wdn', frontend_url + 'templates/default/html/js/vendor/selec
         });
 
         $('#checkbox-toggle').click(function (click) {
-            console.log('click checkbox toggle', $(this).is(":checked"));
             $(".select-event").prop("checked", $(this).is(":checked"));
         });
 
