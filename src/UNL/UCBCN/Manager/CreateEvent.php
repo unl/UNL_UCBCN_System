@@ -1,38 +1,18 @@
 <?php
 namespace UNL\UCBCN\Manager;
 
+use UNL\UCBCN\Manager\EventForm as EventForm;
 use UNL\UCBCN as BaseUCBCN;
-use UNL\UCBCN\Calendar as CalendarModel;
-use UNL\UCBCN\Calendar\EventTypes;
-use UNL\UCBCN\Location;
-use UNL\UCBCN\Locations;
 use UNL\UCBCN\Event;
 use UNL\UCBCN\Event\EventType;
 use UNL\UCBCN\Event\Occurrence;
-use UNL\UCBCN\User;
-use UNL\UCBCN\Permission;
 
-class CreateEvent extends PostHandler
+class CreateEvent extends EventForm
 {
-    public $options = array();
-    public $calendar;
-    public $event;
-    public $post;
-
     public function __construct($options = array()) 
     {
-        $this->options = $options + $this->options;
-        $this->calendar = CalendarModel::getByShortName($this->options['calendar_shortname']);
-
-        if ($this->calendar === FALSE) {
-            throw new \Exception("That calendar could not be found.", 404);
-        }
-
-        $user = Auth::getCurrentUser();
-        if (!$user->hasPermission(Permission::EVENT_CREATE_ID, $this->calendar->id)) {
-            throw new \Exception("You do not have permission to create an event on this calendar.", 403);
-        }
-
+        parent::__construct($options);
+        $this->mode = self::MODE_CREATE;
         $this->event = new Event;
     }
 
@@ -48,23 +28,6 @@ class CreateEvent extends PostHandler
 
         # redirect
         return $this->calendar->getManageURL(TRUE);
-    }
-
-    private function setEventData($post_data, $files) 
-    {
-        $this->event->title = empty($post_data['title']) ? NULL : $post_data['title'];
-        $this->event->subtitle = empty($post_data['subtitle']) ? NULL : $post_data['subtitle'];
-        $this->event->description = empty($post_data['description']) ? NULL : $post_data['description'];
-
-        $this->event->listingcontactname = empty($post_data['contact_name']) ? NULL : $post_data['contact_name'];
-        $this->event->listingcontactphone = empty($post_data['contact_phone']) ? NULL : $post_data['contact_phone'];
-        $this->event->listingcontactemail = empty($post_data['contact_email']) ? NULL : $post_data['contact_email'];
-
-        $this->event->webpageurl = empty($post_data['website']) ? NULL : $post_data['website'];
-        $this->event->approvedforcirculation = isset($post_data['private_public']) && $post_data['private_public'] == 'private' ? 0 : 1;
-
-        # for extraneous data aside from the event (location, type, etc)
-        $this->post = $post_data;
     }
 
     private function validateEventData($post_data, $files) 
@@ -121,21 +84,13 @@ class CreateEvent extends PostHandler
           throw new ValidationException('Event Website must be a valid URL.');
         }
 
-        if (isset($files['imagedata']) && is_uploaded_file($files['imagedata']['tmp_name'])) {
-            if ($files['imagedata']['error'] == UPLOAD_ERR_OK) {
-                $this->event->imagemime = $files['imagedata']['type'];
-                $this->event->imagedata = file_get_contents($files['imagedata']['tmp_name']);
-            } else {
-                throw new ValidationException('There was an error uploading your image.');
-            }
-        } else if (isset($files['imagedata']) && $files['imagedata']['error'] == UPLOAD_ERR_INI_SIZE) {
-            throw new ValidationException('Your image file size was too large. It must be 2 MB or less. Try a tool like <a target="_blank" href="http://www.imageoptimizer.net">Image Optimizer</a>.');
-        }
+	    # send to main is required
+	    if (empty($post_data['send_to_main'])) {
+		    throw new ValidationException('<a href="send_to_main">Consider for main calendar</a> is required.');
+	    }
 
-        # send to main is required
-        if (empty($post_data['send_to_main'])) {
-            throw new ValidationException('<a href="send_to_main">Consider for main calendar</a> is required.');
-        }
+        # Validate Image
+        $this->validateEventImage($post_data, $files);
     }
 
     private function calculateDate($date, $hour, $minute, $am_or_pm)
@@ -185,8 +140,7 @@ class CreateEvent extends PostHandler
         # check if this is to use a new location
         if ($post_data['location'] == 'new') {
             # create a new location
-            $location = $this->addLocation($post_data, $user);
-            
+	        $location = LocationUtility::addLocation($post_data, $user);
             $event_datetime->location_id = $location->id;
         } else {
             $event_datetime->location_id = $post_data['location'];
@@ -230,68 +184,5 @@ class CreateEvent extends PostHandler
         }
 
         return $this->event;
-    }
-
-    /**
-     * Add a location
-     * 
-     * @param array $post_data
-     * @return Location
-     */
-    protected function addLocation(array $post_data, $user)
-    {
-        $allowed_fields = array(
-            'name',
-            'streetaddress1',
-            'streetaddress2',
-            'room',
-            'city',
-            'state',
-            'zip',
-            'mapurl',
-            'webpageurl',
-            'hours',
-            'directions',
-            'additionalpublicinfo',
-            'type',
-            'phone',
-        );
-
-        $location = new Location;
-
-        foreach ($allowed_fields as $field) {
-            $value = $post_data['new_location'][$field];
-            if (!empty($value)) {
-                $location->$field = $value;
-            }
-        }
-
-        if (array_key_exists('location_save', $post_data) && $post_data['location_save'] == 'on') {
-            $location->user_id = $user->uid;
-        }
-        $location->standard = 0;
-
-        $location->insert();
-        
-        return $location;
-    }
-
-    public function getEventTypes()
-    {
-        return new EventTypes(array());
-    }
-    
-    public function getUserLocations()
-    {
-        $user = Auth::getCurrentUser();
-        return new Locations(array('user_id' => $user->uid));
-    }
-    
-    public function getStandardLocations($display_order)
-    {
-        return new Locations(array(
-            'standard' => true,
-            'display_order' => $display_order,
-        ));
     }
 }

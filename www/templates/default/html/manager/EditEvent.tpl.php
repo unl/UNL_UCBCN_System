@@ -57,7 +57,7 @@
     <div class="dcf-grid dcf-col-gap-vw" style="margin-top: -2.5rem">
         <div class="dcf-col-100% dcf-col-67%-start@md">
             <fieldset style="margin-top: 0">
-            	<legend class="dcf-legend" style="margin-top: 0">Event Details</legend>
+                <legend class="dcf-legend dcf-txt-md" style="margin-top: 0">Event Details</legend>
                 <label class="dcf-label" for="title"><span class="required">*</span> Title</label>
                 <input class="dcf-input-text" type="text" id="title" name="title" value="<?php echo $event->title; ?>" />
 
@@ -77,7 +77,7 @@
             <fieldset class="event-datetimes">
 	            <legend class="dcf-legend dcf-txt-md">Location, Date, and Time</legend>
                 <a class="dcf-btn dcf-btn-primary" href="<?php echo $event->getAddDatetimeURL($context->calendar) ?>">Add Location, Date, and/or Time</a><br><br>
-	            <div class="edt-header">
+	            <div class="edt-header dcf-txt-sm">
                     <div class="dates">
 	            	  Dates
                     </div>
@@ -87,7 +87,7 @@
 	            </div>
 
             	<?php foreach($event->getDatetimes(5, ($context->page - 1)*5) as $datetime) : ?>
-                	<div class="edt-record <?php if ($datetime->recurringtype != 'none') echo 'has-recurring' ?>">
+                    <div class="edt-record  dcf-txt-sm <?php if ($datetime->recurringtype != 'none') echo 'has-recurring' ?>">
                         <div class="dates">
                     		<?php
         				    {
@@ -179,6 +179,8 @@
                 </div>
             <?php endif; ?>
             </fieldset>
+
+	        <?php echo $savvy->render($context, 'EventFormImageUpload.tpl.php'); ?>
         </div>
         <div class="dcf-col-100% dcf-col-33%-end@md">
             <fieldset class="visual-island dcf-b-0">
@@ -232,22 +234,6 @@
                     <input class="dcf-input-text" value="<?php echo $event->webpageurl; ?>" type="text" id="website" name="website" />
                 </div>
             </fieldset>
-
-            <fieldset class="visual-island dcf-b-0">
-                <legend class="dcf-legend vi-header">
-                    Image
-                </legend>
-
-                <div class="details">
-                    <?php if ($event->imagemime != NULL): ?>
-                        <img src="<?php echo $base_frontend_url ?>images/<?php echo $event->id; ?>" alt="image for event <?php echo $event->id; ?>">
-                        <br>
-                        <input type="checkbox" name="remove_image" id="remove-image">
-                        <label for="remove-image">Remove Image</label> 
-                    <?php endif; ?>
-                    <input class="dcf-input-file" style="font-size: 10px;" type="file" name="imagedata" id="imagedata" aria-label="Event Image">
-                </div>
-            </fieldset>
         </div>
         <div class="dcf-col-100%">
           <button class="dcf-btn dcf-btn-primary dcf-float-left" type="submit">Save Event</button>
@@ -287,4 +273,3 @@ require(['jquery'], function($) {
     });
 });");
 ?>
-

@@ -19,7 +19,7 @@
         <input type="hidden" name="<?php echo $controller->getCSRFHelper()->getTokenValueKey() ?>" value="<?php echo $controller->getCSRFHelper()->getTokenValue() ?>">
         <div class="dcf-col-100% dcf-col-67%-start@md">
             <fieldset>
-                <legend class="dcf-legend" style="margin-top: 0">Event Details</legend>
+                <legend class="dcf-legend dcf-txt-md" style="margin-top: 0">Event Details</legend>
                 <label class="dcf-label" for="title"><span class="dcf-required">*</span> Title</label>
                 <input class="dcf-input-text" type="text" id="title" name="title" value="<?php echo $event->title; ?>" />
 
@@ -38,22 +38,22 @@
             </fieldset>
 
             <fieldset>
-            <legend class="dcf-legend">Location, Date, and Time</legend>
+            <legend class="dcf-legend dcf-txt-md">Location, Date, and Time</legend>
                 <label class="dcf-label" for="location"><span class="dcf-required">*</span> Location</label>
                 <select class="dcf-input-select" id="location" name="location" cstyle="width: 100%;">
                   <optgroup label="Your saved locations">
-                      <?php foreach ($context->getUserLocations() as $location): ?>
+                      <?php foreach (\UNL\UCBCN\Manager\LocationUtility::getUserLocations() as $location): ?>
                         <option <?php if (isset($post['location']) && $post['location'] == $location->id) echo 'selected="selected"' ?> value="<?php echo $location->id ?>"><?php echo $location->name ?></option>
                       <?php endforeach ?>
                     <option <?php if (isset($post['location']) && $post['location'] == 'new') echo 'selected="selected"' ?>value="new">-- New Location --</option>
                   </optgroup>
                   <optgroup label="UNL Campus locations">
-                      <?php foreach ($context->getStandardLocations(\UNL\UCBCN\Location::DISPLAY_ORDER_MAIN) as $location): ?>
+                      <?php foreach (\UNL\UCBCN\Manager\LocationUtility::getStandardLocations(\UNL\UCBCN\Location::DISPLAY_ORDER_MAIN) as $location): ?>
                         <option <?php if (isset($post['location']) && $post['location'] == $location->id) echo 'selected="selected"' ?> value="<?php echo $location->id ?>"><?php echo $location->name ?></option>
                       <?php endforeach ?>
                   </optgroup>
                   <optgroup label="Extension locations">
-                      <?php foreach ($context->getStandardLocations(\UNL\UCBCN\Location::DISPLAY_ORDER_EXTENSION) as $location): ?>
+                      <?php foreach (\UNL\UCBCN\Manager\LocationUtility::getStandardLocations(\UNL\UCBCN\Location::DISPLAY_ORDER_EXTENSION) as $location): ?>
                         <option <?php if (isset($post['location']) && $post['location'] == $location->id) echo 'selected="selected"' ?> value="<?php echo $location->id ?>"><?php echo $location->name ?></option>
                       <?php endforeach ?>
                   </optgroup>
@@ -243,6 +243,8 @@
                 <label class="dcf-label" for="additional-public-info">Additional Public Info</label>
                 <textarea class="dcf-input-text" id="additional-public-info" name="additional_public_info"><?php if (isset($post['additional_public_info'])) { echo $post['additional_public_info']; } ?></textarea>
             </fieldset>
+
+	        <?php echo $savvy->render($context, 'EventFormImageUpload.tpl.php'); ?>
         </div>
 
         <div class="dcf-col-100% dcf-col-33%-end@md">
@@ -294,13 +296,6 @@
                     <input class="dcf-input-text" type="text" id="website" name="website" value="<?php echo $event->webpageurl ?>" />
                 </div>
             </fieldset>
-
-            <fieldset class="visual-island dcf-b-0">
-                <legend class="dcf-legend vi-header">Image</legend>
-                <div class="details">
-                    <input class="dcf-input-file" style="font-size: 10px;" type="file" name="imagedata" id="imagedata" aria-label="Select an Image">
-                </div>
-            </fieldset>
         </div>
         <div class="dcf-col-100%">
             <button class="dcf-btn dcf-btn-primary dcf-float-left" type="submit">Submit Event</button>
@@ -308,7 +303,6 @@
       </div>
     </form>
 </div>
-
 <?php
 $recurringType = !empty($post['recurring_type']) ? $post['recurring_type'] : NULL;
 $page->addScriptDeclaration("
@@ -439,6 +433,10 @@ require(['jquery'], function ($) {
             if ($('#contact-name').val().trim() == '') {
                 notifier.mark_input_invalid($('#contact-name'));
                 errors.push('<a href=\"#contact-name\">Contact Name</a> is required when event is considered for main calendar.');
+            }
+            if ($('#cropped-image-data').val().trim() == '' && $('#imagedata').val().trim() == '') {
+                notifier.mark_input_invalid($('#imagedata'));
+                errors.push('<a href=\"#imagedata\">Image</a> is required when event is considered for main calendar.');
             }
         }
 

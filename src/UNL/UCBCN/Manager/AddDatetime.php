@@ -4,7 +4,6 @@ namespace UNL\UCBCN\Manager;
 use UNL\UCBCN as BaseUCBCN;
 use UNL\UCBCN\Calendar as CalendarModel;
 use UNL\UCBCN\Event;
-use UNL\UCBCN\Location;
 use UNL\UCBCN\Locations;
 use UNL\UCBCN\Permission;
 use UNL\UCBCN\Event\Occurrence;
@@ -115,20 +114,6 @@ class AddDatetime extends PostHandler
         return $this->event->getEditURL($this->calendar);
     }
 
-    public function getUserLocations()
-    {
-        $user = Auth::getCurrentUser();
-        return new Locations(array('user_id' => $user->uid));
-    }
-    
-    public function getStandardLocations($display_order)
-    {
-        return new Locations(array(
-            'standard' => true,
-            'display_order' => $display_order,
-        ));
-    }
-
     private function calculateDate($date, $hour, $minute, $am_or_pm)
     {
         # defaults if NULL is passed in
@@ -138,50 +123,6 @@ class AddDatetime extends PostHandler
 
         $date = strtotime($date . ' ' . $hour . ':' . $minute . ':00 ' . $am_or_pm);
         return date('Y-m-d H:i:s', $date);
-    }
-
-     /**
-     * Add a location
-     * 
-     * @param array $post_data
-     * @return Location
-     */
-    protected function addLocation(array $post_data, $user)
-    {
-        $allowed_fields = array(
-            'name',
-            'streetaddress1',
-            'streetaddress2',
-            'room',
-            'city',
-            'state',
-            'zip',
-            'mapurl',
-            'webpageurl',
-            'hours',
-            'directions',
-            'additionalpublicinfo',
-            'type',
-            'phone',
-        );
-
-        $location = new Location;
-
-        foreach ($allowed_fields as $field) {
-            $value = $post_data['new_location'][$field];
-            if (!empty($value)) {
-                $location->$field = $value;
-            }
-        }
-
-        if (array_key_exists('location_save', $post_data) && $post_data['location_save'] == 'on') {
-            $location->user_id = $user->uid;
-        }
-        $location->standard = 0;
-
-        $location->insert();
-        
-        return $location;
     }
 
     private function setDatetimeData($post_data)
@@ -286,7 +227,7 @@ class AddDatetime extends PostHandler
         # check if this is to use a new location
         if ($post_data['location'] == 'new') {
             # create a new location
-            $location = $this->addLocation($post_data, $user);
+	        $location = LocationUtility::addLocation($post_data, $user);
             $this->event_datetime->location_id = $location->id;
         } else {
             $this->event_datetime->location_id = $post_data['location'];

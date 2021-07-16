@@ -64,18 +64,18 @@
                   <option selected="selected" value="<?php echo $datetime->location_id ?>"><?php echo $datetime->getLocation()->name; ?></option>
               <?php endif; ?>
               <optgroup label="Your saved locations">
-                  <?php foreach ($context->getUserLocations() as $location): ?>
+                  <?php foreach (\UNL\UCBCN\Manager\LocationUtility::getUserLocations() as $location): ?>
                       <option value="<?php echo $location->id ?>"><?php echo $location->name ?></option>
                   <?php endforeach; ?>
                   <option value="new">-- New Location --</option>
               </optgroup>
               <optgroup label="UNL Campus locations">
-                  <?php foreach ($context->getStandardLocations(\UNL\UCBCN\Location::DISPLAY_ORDER_MAIN) as $location): ?>
+                  <?php foreach (\UNL\UCBCN\Manager\LocationUtility::getStandardLocations(\UNL\UCBCN\Location::DISPLAY_ORDER_MAIN) as $location): ?>
                       <option value="<?php echo $location->id ?>"><?php echo $location->name ?></option>
                   <?php endforeach; ?>
               </optgroup>
               <optgroup label="Extension locations">
-                  <?php foreach ($context->getStandardLocations(\UNL\UCBCN\Location::DISPLAY_ORDER_EXTENSION) as $location): ?>
+                  <?php foreach (\UNL\UCBCN\Manager\LocationUtility::getStandardLocations(\UNL\UCBCN\Location::DISPLAY_ORDER_EXTENSION) as $location): ?>
                       <option value="<?php echo $location->id ?>"><?php echo $location->name ?></option>
                   <?php endforeach; ?>
               </optgroup>

@@ -1,38 +1,21 @@
 <?php
 namespace UNL\UCBCN\Manager;
 
-use UNL\UCBCN\Calendar as CalendarModel;
-use UNL\UCBCN\Calendar\EventTypes;
-use UNL\UCBCN\Location;
-use UNL\UCBCN\Locations;
-use UNL\UCBCN\Permission;
+use UNL\UCBCN\Manager\EventForm as EventForm;
 use UNL\UCBCN\Event;
 use UNL\UCBCN\Event\EventType;
-use UNL\UCBCN\Event\Occurrence;
-use UNL\UCBCN\User;
+use UNL\UCBCN\Calendar as CalendarModel;
 
-class EditEvent extends PostHandler
+class EditEvent extends EventForm
 {
-    public $options = array();
-    public $calendar;
-    public $event;
-    public $post;
     public $on_main_calendar;
     public $page;
 
     public function __construct($options = array()) 
     {
-        $this->options = $options + $this->options;
-        $this->calendar = CalendarModel::getByShortName($this->options['calendar_shortname']);
-        if ($this->calendar === FALSE) {
-            throw new \Exception("That calendar could not be found.", 404);
-        }
+        parent::__construct($options);
 
-        $user = Auth::getCurrentUser();
-        if (!$user->hasPermission(Permission::EVENT_EDIT_ID, $this->calendar->id)) {
-            throw new \Exception("You do not have permission to edit events on this calendar.", 403);
-        }
-
+	    $this->mode = self::MODE_UPDATE;
         $this->event = Event::getByID($this->options['event_id']);
         if ($this->event === FALSE) {
             throw new \Exception("That event could not be found.", 404);
@@ -65,34 +48,6 @@ class EditEvent extends PostHandler
         return $this->event->getEditURL($this->calendar);
     }
 
-    public function getEventTypes()
-    {
-        return new EventTypes(array());
-    }
-
-    public function getLocations()
-    {
-        $user = Auth::getCurrentUser();
-        return new Locations(array('user_id' => $user->uid));
-    }
-
-    private function setEventData($post_data, $files)
-    {
-        $this->event->title = empty($post_data['title']) ? NULL : $post_data['title'];
-        $this->event->subtitle = empty($post_data['subtitle']) ? NULL : $post_data['subtitle'];
-        $this->event->description = empty($post_data['description']) ? NULL : $post_data['description'];
-
-        $this->event->listingcontactname = empty($post_data['contact_name']) ? NULL : $post_data['contact_name'];
-        $this->event->listingcontactphone = empty($post_data['contact_phone']) ? NULL : $post_data['contact_phone'];
-        $this->event->listingcontactemail = empty($post_data['contact_email']) ? NULL : $post_data['contact_email'];
-
-        $this->event->webpageurl = empty($post_data['website']) ? NULL : $post_data['website'];
-        $this->event->approvedforcirculation = $post_data['private_public'] == 'private' ? 0 : 1;
-
-        # for extraneous data aside from the event (location, type, etc)
-        $this->post = $post_data;
-    }
-
     private function validateEventData($post_data, $files)
     {
         # title required
@@ -104,7 +59,7 @@ class EditEvent extends PostHandler
         if (!$this->on_main_calendar) {
             if (array_key_exists('send_to_main', $post_data) && $post_data['send_to_main'] == 'on') {
                 if (empty($post_data['description']) || empty($post_data['contact_name'])) {
-                    throw new ValidationException('<a href="#contact-name">Contact name</a> and <a href="#description">description</a> are required to recommend to UNL Main Calendar.');
+                    throw new ValidationException('<a href="#contact-name">Contact name</a>, <a href="#description">description</a> and <a href="#imagedata">image</a> are required to recommend to UNL Main Calendar.');
                 }
             }
         }
@@ -114,22 +69,11 @@ class EditEvent extends PostHandler
           throw new ValidationException('Event Website must be a valid URL.');
         }
 
-        if (array_key_exists('remove_image', $post_data) && $post_data['remove_image'] == 'on') {
-            $this->event->imagemime = NULL;
-            $this->event->imagedata = NULL;
-        } else if (isset($files['imagedata']) && is_uploaded_file($files['imagedata']['tmp_name'])) {
-            if ($files['imagedata']['error'] == UPLOAD_ERR_OK) {
-                $this->event->imagemime = $files['imagedata']['type'];
-                $this->event->imagedata = file_get_contents($files['imagedata']['tmp_name']);
-            } else {
-                throw new ValidationException('There was an error uploading your image.');
-            }
-        } else if (isset($files['imagedata']) && $files['imagedata']['error'] == UPLOAD_ERR_INI_SIZE) {
-            throw new ValidationException('Your image file size was too large. It must be 2 MB or less. Try a tool like <a target="_blank" href="http://www.imageoptimizer.net">Image Optimizer</a>.');
-        }
+	    // Validate Image
+	    $this->validateEventImage($post_data, $files);
     }
 
-    private function updateEvent($post_data, $files) 
+    private function updateEvent($post_data, $files)
     {
         $this->setEventData($post_data, $files);
         $this->validateEventData($post_data, $files);
